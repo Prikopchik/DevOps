@@ -1,7 +1,7 @@
 services:
   backend:
     build:
-      context: ./Devops_back
+      context: ./backend
       dockerfile: Dockerfile
     container_name: backend
     networks:
@@ -12,7 +12,7 @@ services:
 
   frontend:
     build:
-      context: ./Devops_front
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend
     depends_on:
