@@ -1,0 +1,32 @@
+#version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./Devops_back
+      dockerfile: Dockerfile
+    container_name: backend
+    networks:
+      - backend_network
+    volumes:
+      - backend_data:/app/data
+    restart: always
+
+  frontend:
+    build:
+      context: ./Devops_front
+      dockerfile: Dockerfile
+    container_name: frontend
+    depends_on:
+      - backend
+    networks:
+      - backend_network
+    restart: always
+
+volumes:
+  backend_data:
+    driver: local
+
+networks:
+  backend_network:
+    driver: bridge
