@@ -6,4 +6,4 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY . /app
 WORKDIR /app
 
-CMD ["python", "app.py"]
+CMD ["python", "backend.py"]

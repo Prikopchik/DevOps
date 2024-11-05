@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY . /app
 WORKDIR /app
 
-CMD ["python", "frontend_v2.py"]
+CMD ["python", "frontend.py"]
