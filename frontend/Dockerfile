@@ -1,11 +1,12 @@
-FROM python:3.10-slim
+FROM python:3.11.2-slim
 
-RUN apt-get update && apt-get install -y tk && rm -rf /var/lib/apt/lists/*
-
-COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
-
-COPY . /app
 WORKDIR /app
 
-CMD ["python", "frontend.py"]
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN apt-get update && apt-get install -y git
+
+COPY . .
+ENV FLASK_APP=frontend.py
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]

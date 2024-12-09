@@ -1,56 +1,78 @@
-import tkinter as tk
+from flask import Flask, request, render_template_string, redirect, url_for
 import requests
-from tkinter import messagebox
 
-def send_data():
-    data = entry_send.get()
-    if not data:
-        messagebox.showwarning("Предупреждение", "Поле ввода не может быть пустым.")
-        return
-    try:
-        response = requests.post('http://localhost:5000/api/data', json={'data': data})
-        result = response.json()
-        messagebox.showinfo("Результат", result.get('message', 'Нет сообщения от сервера.'))
-    except requests.exceptions.RequestException as e:
-        messagebox.showerror("Ошибка", f"Не удалось отправить данные: {e}")
+app = Flask(__name__)
 
+
+@app.route('/')
+def index():
+    html = '''
+    <html>
+        <body>
+            <h2>Отправить данные на сервер:</h2>
+            <form action="/send" method="POST">
+                <input type="text" name="userInput" placeholder="Введите текст для отправки">
+                <button type="submit">Отправить данные</button>
+            </form>
+            <h2>Получить данные с сервера:</h2>
+            <form action="/get" method="GET">
+                <button type="submit">Получить данные</button>
+            </form>
+            <div id="result-field">{{ response_data }}</div>
+        </body>
+    </html>
+    '''
+    return render_template_string(html, response_data='')
+
+
+@app.route('/send', methods=['POST'])
+def send():
+    user_input = request.form['userInput']
+
+    if not user_input.strip():
+        return redirect(url_for('no_data'))
+
+    response = requests.post('http://backend:5001/save', json={'data': user_input})
+
+    return render_template_string(f'''
+    <html>
+        <body>
+            <h2>Данные отправлены на сервер: {user_input}</h2>
+            <p>Ответ сервера: {response.text}</p>
+            <a href="/">Вернуться на главную страницу</a>
+        </body>
+    </html>
+    ''')
+
+
+@app.route('/no_data')
+def no_data():
+    html = '''
+    <html>
+        <body>
+            <h2">Нет данных для отправки. Пожалуйста, введите текст.</h2>
+            <a href="/">Вернуться на главную страницу</a>
+        </body>
+    </html>
+    '''
+    return render_template_string(html)
+
+
+@app.route('/get', methods=['GET'])
 def get_data():
-    try:
-        response = requests.get('http://localhost:5000/api/data')
-        if response.status_code == 200:
-            result = response.json()
-            received_text.delete(1.0, tk.END)
-            received_text.insert(tk.END, result.get('data', 'Нет данных от сервера.'))
-        else:
-            messagebox.showerror("Ошибка", "Не удалось получить данные с сервера.")
-    except requests.exceptions.RequestException as e:
-        messagebox.showerror("Ошибка", f"Не удалось получить данные: {e}")
+    
+    response = requests.get('http://backend:5001/get')
 
-root = tk.Tk()
-root.title("Frontend 2.0")
+    return render_template_string(f'''
+    <html>
+        <body>
+            <h2>Полученные данные с сервера:</h2>
+            <p>{response.text}</p>
+            <a href="/">Вернуться на главную страницу</a>
+        </body>
+    </html>
+    ''')
 
-send_frame = tk.Frame(root)
-send_frame.pack(pady=10)
 
-label_send = tk.Label(send_frame, text="Введите текст для отправки на сервер:")
-label_send.pack(side=tk.LEFT, padx=5)
-
-entry_send = tk.Entry(send_frame, width=40)
-entry_send.pack(side=tk.LEFT, padx=5)
-
-send_button = tk.Button(send_frame, text="Отправить", command=send_data)
-send_button.pack(side=tk.LEFT, padx=5)
-
-get_frame = tk.Frame(root)
-get_frame.pack(pady=10)
-
-get_button = tk.Button(get_frame, text="Получить данные", command=get_data)
-get_button.pack()
-
-received_label = tk.Label(root, text="Полученные данные:")
-received_label.pack(pady=5)
-
-received_text = tk.Text(root, height=10, width=60)
-received_text.pack(pady=5)
-
-root.mainloop()
+if __name__ == '__main__':
+    app.run(port=5000, debug=True)
